@@ -1,8 +1,7 @@
 # KidTrack Platform
 
-Backend de **KidTrack**, la plataforma web de movilidad escolar de StackForge. Es la migración a **Java + Spring Boot**
-del backend de SaferRoute (`saferoute-powertech-platform`, ASP.NET Core), adaptada al dominio y a la aplicación web de
-KidTrack (`kidtrack-webapp`).
+Backend de **KidTrack**, la plataforma web de movilidad escolar de StackForge, desarrollado en **Java + Spring Boot**
+para la aplicación web de KidTrack (`kidtrack-webapp`).
 
 ## Stack
 
@@ -17,8 +16,8 @@ KidTrack (`kidtrack-webapp`).
 
 ## Arquitectura
 
-Monolito modular con **Domain-Driven Design**: seis bounded contexts más un *shared kernel*. Cada contexto tiene las
-mismas capas que el backend original:
+Monolito modular con **Domain-Driven Design**: seis bounded contexts más un *shared kernel*. Todos los contextos
+tienen las mismas capas:
 
 ```
 com.stackforge.kidtrack.platform
@@ -143,31 +142,3 @@ sus viajes. Cuentas:
 | Padre | `parent@kidtrack.pe` | `parent123` |
 
 Son solo para desarrollo: desactiva `SEED_ENABLED` en producción.
-
-## Qué cambió respecto al backend de SaferRoute
-
-| SaferRoute (.NET) | KidTrack Platform (Spring Boot) |
-|---|---|
-| ASP.NET Core 10 + EF Core + MySQL | Spring Boot 3.5 + Spring Data JPA + MySQL |
-| Cortex.Mediator (comandos y consultas) | Servicios de comando y de consulta con records de `Command` / `Query` |
-| `Result<T>` + `ProblemDetailsFactory` | Excepciones de dominio + `GlobalExceptionHandler` (RFC 7807) |
-| JWT con `JwtBearer` | JWT con Spring Security OAuth2 Resource Server |
-| BCrypt.Net | `BCryptPasswordEncoder` |
-| Swashbuckle | springdoc-openapi |
-| Migraciones EF y `Database.Migrate()` | `spring.jpa.hibernate.ddl-auto=update` |
-| Seeders al arrancar | `CommandLineRunner` por contexto (`kidtrack.seed.enabled`) |
-| API propio (`/users/sign-in`, recursos anidados) | API con el contrato del front de KidTrack (`/authentication/sign-in`, recursos planos) |
-
-Adaptaciones al dominio de KidTrack:
-
-- Se mantienen los seis bounded contexts y su estructura. El contexto *Stakeholder* pasa a tener alumnos (`Child`) como
-  recurso propio, con grado, estado de abordaje y foto.
-- *Fleet* modela la ruta como en el front (tipo `OUTBOUND`/`RETURN`, paradas con coordenadas y alumnos, horario `HH:mm`)
-  en lugar del ciclo borrador/activa de SaferRoute.
-- *Trip* reemplaza `PENDING/IN_PROGRESS/COMPLETED` por los estados del front (`SCHEDULED`, `EN_ROUTE`, `COMPLETED`,
-  `CANCELLED`) y guarda con el viaje el nombre de la ruta, el conductor y el vehículo.
-- *Notifications* usa los tipos de aviso del front (`ABORDAJE`, `PROXIMIDAD`, `AUSENCIA`, `LLEGADA`, `RETRASO`) y el
-  campo `read`.
-- Los identificadores de dominio son `UUID` directos (sin clases `*Id` envolventes).
-- No se migraron los grupos de alumnos (`StudentGroup`) ni las alertas y anuncios de SaferRoute, porque KidTrack no los
-  usa; los avisos a los padres cubren ese caso.
