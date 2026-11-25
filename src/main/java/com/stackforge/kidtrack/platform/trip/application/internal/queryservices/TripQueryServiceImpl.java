@@ -1,7 +1,9 @@
 package com.stackforge.kidtrack.platform.trip.application.internal.queryservices;
 
+import com.stackforge.kidtrack.platform.trip.domain.model.aggregates.Handover;
 import com.stackforge.kidtrack.platform.trip.domain.model.aggregates.Incident;
 import com.stackforge.kidtrack.platform.trip.domain.model.aggregates.Trip;
+import com.stackforge.kidtrack.platform.trip.domain.model.queries.TripQueries.GetHandoversQuery;
 import com.stackforge.kidtrack.platform.trip.domain.model.queries.TripQueries.GetIncidentByIdQuery;
 import com.stackforge.kidtrack.platform.trip.domain.model.queries.TripQueries.GetIncidentsQuery;
 import com.stackforge.kidtrack.platform.trip.domain.model.queries.TripQueries.GetTripByIdQuery;
@@ -9,6 +11,7 @@ import com.stackforge.kidtrack.platform.trip.domain.model.queries.TripQueries.Ge
 import com.stackforge.kidtrack.platform.trip.domain.model.valueobjects.IncidentStatus;
 import com.stackforge.kidtrack.platform.trip.domain.model.valueobjects.TripStatus;
 import com.stackforge.kidtrack.platform.trip.domain.services.TripQueryService;
+import com.stackforge.kidtrack.platform.trip.infrastructure.persistence.jpa.repositories.HandoverRepository;
 import com.stackforge.kidtrack.platform.trip.infrastructure.persistence.jpa.repositories.IncidentRepository;
 import com.stackforge.kidtrack.platform.trip.infrastructure.persistence.jpa.repositories.TripRepository;
 import java.util.Comparator;
@@ -25,7 +28,11 @@ public class TripQueryServiceImpl implements TripQueryService {
     private final TripRepository tripRepository;
     private final IncidentRepository incidentRepository;
 
-    public TripQueryServiceImpl(TripRepository tripRepository, IncidentRepository incidentRepository) {
+    private final HandoverRepository handoverRepository;
+
+    public TripQueryServiceImpl(TripRepository tripRepository, IncidentRepository incidentRepository,
+                                HandoverRepository handoverRepository) {
+        this.handoverRepository = handoverRepository;
         this.tripRepository = tripRepository;
         this.incidentRepository = incidentRepository;
     }
@@ -66,5 +73,17 @@ public class TripQueryServiceImpl implements TripQueryService {
     @Override
     public Optional<Incident> handle(GetIncidentByIdQuery query) {
         return incidentRepository.findById(query.incidentId());
+    }
+
+    @Override
+    public List<Handover> handle(GetHandoversQuery query) {
+        var handovers = query.tripId() != null ? handoverRepository.findByTripId(query.tripId())
+                : query.organizationId() != null ? handoverRepository.findByOrganizationId(query.organizationId())
+                : handoverRepository.findAll();
+        return handovers.stream()
+                .filter(handover -> query.organizationId() == null
+                        || handover.getOrganizationId().equals(query.organizationId()))
+                .sorted(Comparator.comparing(Handover::getRecordedAt))
+                .toList();
     }
 }

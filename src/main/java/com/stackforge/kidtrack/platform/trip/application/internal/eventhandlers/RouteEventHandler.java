@@ -4,6 +4,7 @@ import com.stackforge.kidtrack.platform.fleet.domain.model.events.RouteEvents.Ro
 import com.stackforge.kidtrack.platform.fleet.domain.model.events.RouteEvents.RouteDeleted;
 import com.stackforge.kidtrack.platform.trip.domain.model.aggregates.Trip;
 import com.stackforge.kidtrack.platform.trip.domain.model.events.TripEvents.TripDeleted;
+import com.stackforge.kidtrack.platform.trip.infrastructure.persistence.jpa.repositories.HandoverRepository;
 import com.stackforge.kidtrack.platform.trip.infrastructure.persistence.jpa.repositories.IncidentRepository;
 import com.stackforge.kidtrack.platform.trip.infrastructure.persistence.jpa.repositories.TripRepository;
 import org.springframework.context.ApplicationEventPublisher;
@@ -21,8 +22,11 @@ public class RouteEventHandler {
     private final IncidentRepository incidentRepository;
     private final ApplicationEventPublisher events;
 
+    private final HandoverRepository handoverRepository;
+
     public RouteEventHandler(TripRepository tripRepository, IncidentRepository incidentRepository,
-                             ApplicationEventPublisher events) {
+                             ApplicationEventPublisher events, HandoverRepository handoverRepository) {
+        this.handoverRepository = handoverRepository;
         this.tripRepository = tripRepository;
         this.incidentRepository = incidentRepository;
         this.events = events;
@@ -42,6 +46,7 @@ public class RouteEventHandler {
     public void on(RouteDeleted event) {
         var trips = tripRepository.findByRouteId(event.routeId());
         incidentRepository.deleteAll(incidentRepository.findByRouteId(event.routeId()));
+        trips.forEach(trip -> handoverRepository.deleteAll(handoverRepository.findByTripId(trip.getId())));
         trips.forEach(trip -> events.publishEvent(new TripDeleted(trip.getId())));
         tripRepository.deleteAll(trips);
     }

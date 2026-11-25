@@ -64,7 +64,7 @@ public class TripSeeder implements CommandLineRunner {
                 "Ruta Este — San Juan de Lurigancho", IncidentType.RETRASO, IncidentSeverity.LOW,
                 "Tráfico intenso en la Av. Próceres de la Independencia", "Luis Torres",
                 finished.minus(20, ChronoUnit.MINUTES));
-        incident.resolve();
+        incident.resolve("");
         incidentRepository.save(incident);
         LOGGER.info("Trip demo data ensured.");
     }

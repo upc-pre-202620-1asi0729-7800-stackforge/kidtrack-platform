@@ -22,4 +22,8 @@ public final class TripQueries {
 
     public record GetIncidentByIdQuery(UUID incidentId) {
     }
+
+    /** Lists the handovers of an organization, optionally those of a trip. */
+    public record GetHandoversQuery(UUID organizationId, UUID tripId) {
+    }
 }

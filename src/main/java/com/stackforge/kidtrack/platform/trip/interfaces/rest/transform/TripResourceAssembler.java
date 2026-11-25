@@ -2,9 +2,12 @@ package com.stackforge.kidtrack.platform.trip.interfaces.rest.transform;
 
 import com.stackforge.kidtrack.platform.shared.domain.model.valueobjects.Dates;
 import com.stackforge.kidtrack.platform.shared.domain.model.valueobjects.Ids;
+import com.stackforge.kidtrack.platform.trip.domain.model.aggregates.Handover;
 import com.stackforge.kidtrack.platform.trip.domain.model.aggregates.Incident;
 import com.stackforge.kidtrack.platform.trip.domain.model.aggregates.Trip;
+import com.stackforge.kidtrack.platform.trip.interfaces.rest.resources.TripResources.HandoverResource;
 import com.stackforge.kidtrack.platform.trip.interfaces.rest.resources.TripResources.IncidentResource;
+import com.stackforge.kidtrack.platform.trip.interfaces.rest.resources.TripResources.IncidentUpdateResource;
 import com.stackforge.kidtrack.platform.trip.interfaces.rest.resources.TripResources.TripResource;
 import java.util.List;
 
@@ -37,7 +40,20 @@ public final class TripResourceAssembler {
                 trip.getOrganizationId().toString());
     }
 
+    public static HandoverResource toResource(Handover handover) {
+        return new HandoverResource(handover.getId().toString(), handover.getTripId().toString(),
+                handover.getChildId().toString(), handover.getChildName(),
+                Ids.asText(handover.getAuthorizedPersonId()), handover.getReceiverName(), handover.getRelationship(),
+                handover.getOutcome().name(), handover.getRecordedBy(), Dates.format(handover.getRecordedAt()),
+                handover.getOrganizationId().toString());
+    }
+
     public static IncidentResource toResource(Incident incident) {
+        var emergency = incident.getEmergencyType();
+        var updates = incident.getUpdates().stream()
+                .map(update -> new IncidentUpdateResource(update.message(), Dates.format(update.sentAt()),
+                        update.author()))
+                .toList();
         return new IncidentResource(
                 incident.getId().toString(),
                 Ids.asText(incident.getTripId()),
@@ -49,6 +65,17 @@ public final class TripResourceAssembler {
                 incident.getReportedBy(),
                 Dates.format(incident.getReportedAt()),
                 incident.getStatus().name(),
-                incident.getOrganizationId().toString());
+                incident.getOrganizationId().toString(),
+                emergency == null ? null : emergency.name(),
+                emergency == null ? null : emergency.serviceName(),
+                emergency == null ? null : emergency.servicePhone(),
+                incident.getLocation(),
+                List.copyOf(incident.getStudentIds()),
+                incident.getStudentsSafe(),
+                Dates.format(incident.getServiceContactedAt()),
+                incident.getServiceContactedBy(),
+                incident.getResolution(),
+                Dates.format(incident.getResolvedAt()),
+                updates);
     }
 }

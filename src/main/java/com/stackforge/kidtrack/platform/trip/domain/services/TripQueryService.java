@@ -1,7 +1,9 @@
 package com.stackforge.kidtrack.platform.trip.domain.services;
 
+import com.stackforge.kidtrack.platform.trip.domain.model.aggregates.Handover;
 import com.stackforge.kidtrack.platform.trip.domain.model.aggregates.Incident;
 import com.stackforge.kidtrack.platform.trip.domain.model.aggregates.Trip;
+import com.stackforge.kidtrack.platform.trip.domain.model.queries.TripQueries.GetHandoversQuery;
 import com.stackforge.kidtrack.platform.trip.domain.model.queries.TripQueries.GetIncidentByIdQuery;
 import com.stackforge.kidtrack.platform.trip.domain.model.queries.TripQueries.GetIncidentsQuery;
 import com.stackforge.kidtrack.platform.trip.domain.model.queries.TripQueries.GetTripByIdQuery;
@@ -19,4 +21,6 @@ public interface TripQueryService {
     List<Incident> handle(GetIncidentsQuery query);
 
     Optional<Incident> handle(GetIncidentByIdQuery query);
+
+    List<Handover> handle(GetHandoversQuery query);
 }
