@@ -1,8 +1,11 @@
 package com.stackforge.kidtrack.platform.stakeholder.domain.services;
 
+import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.AuthorizedPerson;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.Child;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.Driver;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.Parent;
+import com.stackforge.kidtrack.platform.stakeholder.domain.model.queries.StakeholderQueries.GetAuthorizedPersonByIdQuery;
+import com.stackforge.kidtrack.platform.stakeholder.domain.model.queries.StakeholderQueries.GetAuthorizedPersonsQuery;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.queries.StakeholderQueries.GetChildByIdQuery;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.queries.StakeholderQueries.GetChildrenQuery;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.queries.StakeholderQueries.GetDriverByIdQuery;
@@ -26,4 +29,8 @@ public interface StakeholderQueryService {
     List<Driver> handle(GetDriversQuery query);
 
     Optional<Driver> handle(GetDriverByIdQuery query);
+
+    List<AuthorizedPerson> handle(GetAuthorizedPersonsQuery query);
+
+    Optional<AuthorizedPerson> handle(GetAuthorizedPersonByIdQuery query);
 }

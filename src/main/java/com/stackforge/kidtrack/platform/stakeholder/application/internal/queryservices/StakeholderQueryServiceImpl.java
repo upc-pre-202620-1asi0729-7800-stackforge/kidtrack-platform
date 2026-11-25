@@ -1,8 +1,11 @@
 package com.stackforge.kidtrack.platform.stakeholder.application.internal.queryservices;
 
+import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.AuthorizedPerson;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.Child;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.Driver;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.Parent;
+import com.stackforge.kidtrack.platform.stakeholder.domain.model.queries.StakeholderQueries.GetAuthorizedPersonByIdQuery;
+import com.stackforge.kidtrack.platform.stakeholder.domain.model.queries.StakeholderQueries.GetAuthorizedPersonsQuery;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.queries.StakeholderQueries.GetChildByIdQuery;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.queries.StakeholderQueries.GetChildrenQuery;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.queries.StakeholderQueries.GetDriverByIdQuery;
@@ -10,6 +13,7 @@ import com.stackforge.kidtrack.platform.stakeholder.domain.model.queries.Stakeho
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.queries.StakeholderQueries.GetParentByIdQuery;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.queries.StakeholderQueries.GetParentsQuery;
 import com.stackforge.kidtrack.platform.stakeholder.domain.services.StakeholderQueryService;
+import com.stackforge.kidtrack.platform.stakeholder.infrastructure.persistence.jpa.repositories.AuthorizedPersonRepository;
 import com.stackforge.kidtrack.platform.stakeholder.infrastructure.persistence.jpa.repositories.ChildRepository;
 import com.stackforge.kidtrack.platform.stakeholder.infrastructure.persistence.jpa.repositories.DriverRepository;
 import com.stackforge.kidtrack.platform.stakeholder.infrastructure.persistence.jpa.repositories.ParentRepository;
@@ -26,8 +30,12 @@ public class StakeholderQueryServiceImpl implements StakeholderQueryService {
     private final ChildRepository childRepository;
     private final DriverRepository driverRepository;
 
+    private final AuthorizedPersonRepository authorizedPersonRepository;
+
     public StakeholderQueryServiceImpl(ParentRepository parentRepository, ChildRepository childRepository,
-                                       DriverRepository driverRepository) {
+                                       DriverRepository driverRepository,
+                                       AuthorizedPersonRepository authorizedPersonRepository) {
+        this.authorizedPersonRepository = authorizedPersonRepository;
         this.parentRepository = parentRepository;
         this.childRepository = childRepository;
         this.driverRepository = driverRepository;
@@ -68,5 +76,22 @@ public class StakeholderQueryServiceImpl implements StakeholderQueryService {
     @Override
     public Optional<Driver> handle(GetDriverByIdQuery query) {
         return driverRepository.findById(query.driverId());
+    }
+
+    @Override
+    public List<AuthorizedPerson> handle(GetAuthorizedPersonsQuery query) {
+        var persons = query.childId() != null ? authorizedPersonRepository.findByChildId(query.childId())
+                : query.organizationId() != null
+                ? authorizedPersonRepository.findByOrganizationId(query.organizationId())
+                : authorizedPersonRepository.findAll();
+        return persons.stream()
+                .filter(person -> query.organizationId() == null
+                        || person.getOrganizationId().equals(query.organizationId()))
+                .toList();
+    }
+
+    @Override
+    public Optional<AuthorizedPerson> handle(GetAuthorizedPersonByIdQuery query) {
+        return authorizedPersonRepository.findById(query.authorizedPersonId());
     }
 }

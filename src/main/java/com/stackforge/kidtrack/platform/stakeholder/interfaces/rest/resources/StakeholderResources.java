@@ -29,6 +29,15 @@ public final class StakeholderResources {
                                      String boardingStatus, Boolean hasPhoto) {
     }
 
+    public record AuthorizedPersonResource(String id, String childId, String fullName, String documentNumber,
+                                           String relationship, String phone, String organizationId) {
+    }
+
+    public record AuthorizedPersonRequestResource(@NotBlank String childId, @NotBlank String fullName,
+                                                  @NotBlank String documentNumber, @NotBlank String relationship,
+                                                  String phone, String organizationId) {
+    }
+
     /** A driver or a parent seen as a person profile ({@code role} is {@code driver} or {@code parent}). */
     public record ProfileResource(String id, String userId, String firstName, String lastName, String phone,
                                   String role, String license, String vehicleId, String status,

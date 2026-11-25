@@ -2,13 +2,16 @@ package com.stackforge.kidtrack.platform.stakeholder.infrastructure.persistence.
 
 import com.stackforge.kidtrack.platform.shared.domain.model.valueobjects.FullName;
 import com.stackforge.kidtrack.platform.shared.infrastructure.persistence.SeedIds;
+import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.AuthorizedPerson;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.Child;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.Driver;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.Parent;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.valueobjects.BoardingStatus;
+import com.stackforge.kidtrack.platform.stakeholder.infrastructure.persistence.jpa.repositories.AuthorizedPersonRepository;
 import com.stackforge.kidtrack.platform.stakeholder.infrastructure.persistence.jpa.repositories.ChildRepository;
 import com.stackforge.kidtrack.platform.stakeholder.infrastructure.persistence.jpa.repositories.DriverRepository;
 import com.stackforge.kidtrack.platform.stakeholder.infrastructure.persistence.jpa.repositories.ParentRepository;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -29,8 +32,12 @@ public class StakeholderSeeder implements CommandLineRunner {
     private final ChildRepository childRepository;
     private final DriverRepository driverRepository;
 
+    private final AuthorizedPersonRepository authorizedPersonRepository;
+
     public StakeholderSeeder(ParentRepository parentRepository, ChildRepository childRepository,
-                             DriverRepository driverRepository) {
+                             DriverRepository driverRepository,
+                             AuthorizedPersonRepository authorizedPersonRepository) {
+        this.authorizedPersonRepository = authorizedPersonRepository;
         this.parentRepository = parentRepository;
         this.childRepository = childRepository;
         this.driverRepository = driverRepository;
@@ -59,6 +66,19 @@ public class StakeholderSeeder implements CommandLineRunner {
             childRepository.save(new Child(SeedIds.CHILD_MATEO, SeedIds.ORGANIZATION, SeedIds.PARENT_JORGE,
                     "Mateo Quispe", "2° Primaria", true, BoardingStatus.EN_ESPERA, false));
         }
+        if (authorizedPersonRepository.count() == 0) {
+            authorize(SeedIds.CHILD_LUCIA, "Rosita Nery", "40000001", "Madre", "999888777");
+            authorize(SeedIds.CHILD_LUCIA, "María Nery", "40000002", "Abuela", "999111333");
+            authorize(SeedIds.CHILD_DIEGO, "Rosita Nery", "40000001", "Madre", "999888777");
+            authorize(SeedIds.CHILD_MATEO, "Jorge Quispe", "40000003", "Padre", "998877665");
+        }
         LOGGER.info("Stakeholder demo data ensured.");
+    }
+
+    private void authorize(UUID childId, String name, String document, String relationship, String phone) {
+        if (childRepository.existsById(childId)) {
+            authorizedPersonRepository.save(new AuthorizedPerson(SeedIds.ORGANIZATION, childId, name, document,
+                    relationship, phone));
+        }
     }
 }

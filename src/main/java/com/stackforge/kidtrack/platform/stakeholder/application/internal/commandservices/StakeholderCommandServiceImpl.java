@@ -4,6 +4,7 @@ import com.stackforge.kidtrack.platform.shared.domain.exceptions.BusinessRuleExc
 import com.stackforge.kidtrack.platform.shared.domain.exceptions.ConflictException;
 import com.stackforge.kidtrack.platform.shared.domain.exceptions.NotFoundException;
 import com.stackforge.kidtrack.platform.shared.domain.model.valueobjects.FullName;
+import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.AuthorizedPerson;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.Child;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.Driver;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.Parent;
@@ -13,11 +14,14 @@ import com.stackforge.kidtrack.platform.stakeholder.domain.model.commands.Stakeh
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.commands.StakeholderCommands.DeleteChildCommand;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.commands.StakeholderCommands.DeleteDriverCommand;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.commands.StakeholderCommands.DeleteParentCommand;
+import com.stackforge.kidtrack.platform.stakeholder.domain.model.commands.StakeholderCommands.RegisterAuthorizedPersonCommand;
+import com.stackforge.kidtrack.platform.stakeholder.domain.model.commands.StakeholderCommands.RemoveAuthorizedPersonCommand;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.commands.StakeholderCommands.UpdateChildCommand;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.commands.StakeholderCommands.UpdateDriverCommand;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.commands.StakeholderCommands.UpdateParentCommand;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.valueobjects.BoardingStatus;
 import com.stackforge.kidtrack.platform.stakeholder.domain.services.StakeholderCommandService;
+import com.stackforge.kidtrack.platform.stakeholder.infrastructure.persistence.jpa.repositories.AuthorizedPersonRepository;
 import com.stackforge.kidtrack.platform.stakeholder.infrastructure.persistence.jpa.repositories.ChildRepository;
 import com.stackforge.kidtrack.platform.stakeholder.infrastructure.persistence.jpa.repositories.DriverRepository;
 import com.stackforge.kidtrack.platform.stakeholder.infrastructure.persistence.jpa.repositories.ParentRepository;
@@ -34,10 +38,13 @@ public class StakeholderCommandServiceImpl implements StakeholderCommandService 
     private final ChildRepository childRepository;
     private final DriverRepository driverRepository;
     private final SubscriptionContextFacade subscriptionFacade;
+    private final AuthorizedPersonRepository authorizedPersonRepository;
 
     public StakeholderCommandServiceImpl(ParentRepository parentRepository, ChildRepository childRepository,
                                          DriverRepository driverRepository,
-                                         SubscriptionContextFacade subscriptionFacade) {
+                                         SubscriptionContextFacade subscriptionFacade,
+                                         AuthorizedPersonRepository authorizedPersonRepository) {
+        this.authorizedPersonRepository = authorizedPersonRepository;
         this.parentRepository = parentRepository;
         this.childRepository = childRepository;
         this.driverRepository = driverRepository;
@@ -111,7 +118,29 @@ public class StakeholderCommandServiceImpl implements StakeholderCommandService 
 
     @Override
     public void handle(DeleteChildCommand command) {
-        childRepository.delete(findChild(command.childId()));
+        var child = findChild(command.childId());
+        authorizedPersonRepository.deleteAll(authorizedPersonRepository.findByChildId(child.getId()));
+        childRepository.delete(child);
+    }
+
+    @Override
+    public AuthorizedPerson handle(RegisterAuthorizedPersonCommand command) {
+        var child = findChild(command.childId());
+        if (!child.getOrganizationId().equals(command.organizationId())) {
+            throw new BusinessRuleException("The student belongs to another organization.");
+        }
+        var person = new AuthorizedPerson(command.organizationId(), child.getId(), command.fullName(),
+                command.documentNumber(), command.relationship(), command.phone());
+        if (authorizedPersonRepository.existsByChildIdAndDocumentNumber(child.getId(), person.getDocumentNumber())) {
+            throw new ConflictException("That document is already registered for the student.");
+        }
+        return authorizedPersonRepository.save(person);
+    }
+
+    @Override
+    public void handle(RemoveAuthorizedPersonCommand command) {
+        authorizedPersonRepository.delete(authorizedPersonRepository.findById(command.authorizedPersonId())
+                .orElseThrow(() -> new NotFoundException("Authorized person was not found.")));
     }
 
     @Override

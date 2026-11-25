@@ -41,4 +41,11 @@ public final class StakeholderCommands {
 
     public record DeleteDriverCommand(UUID driverId) {
     }
+
+    public record RegisterAuthorizedPersonCommand(UUID organizationId, UUID childId, String fullName,
+                                                  String documentNumber, String relationship, String phone) {
+    }
+
+    public record RemoveAuthorizedPersonCommand(UUID authorizedPersonId) {
+    }
 }

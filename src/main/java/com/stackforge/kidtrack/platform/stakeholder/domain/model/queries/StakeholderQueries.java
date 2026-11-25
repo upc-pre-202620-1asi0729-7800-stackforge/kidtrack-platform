@@ -26,4 +26,11 @@ public final class StakeholderQueries {
 
     public record GetDriverByIdQuery(UUID driverId) {
     }
+
+    /** Lists the authorized persons of an organization, optionally those of a single student. */
+    public record GetAuthorizedPersonsQuery(UUID organizationId, UUID childId) {
+    }
+
+    public record GetAuthorizedPersonByIdQuery(UUID authorizedPersonId) {
+    }
 }

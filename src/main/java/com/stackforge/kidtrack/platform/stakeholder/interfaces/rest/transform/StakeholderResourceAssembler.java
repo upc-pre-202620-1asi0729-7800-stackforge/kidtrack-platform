@@ -1,9 +1,11 @@
 package com.stackforge.kidtrack.platform.stakeholder.interfaces.rest.transform;
 
 import com.stackforge.kidtrack.platform.shared.domain.model.valueobjects.Ids;
+import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.AuthorizedPerson;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.Child;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.Driver;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.Parent;
+import com.stackforge.kidtrack.platform.stakeholder.interfaces.rest.resources.StakeholderResources.AuthorizedPersonResource;
 import com.stackforge.kidtrack.platform.stakeholder.interfaces.rest.resources.StakeholderResources.ChildResource;
 import com.stackforge.kidtrack.platform.stakeholder.interfaces.rest.resources.StakeholderResources.ParentResource;
 import com.stackforge.kidtrack.platform.stakeholder.interfaces.rest.resources.StakeholderResources.ProfileResource;
@@ -26,6 +28,12 @@ public final class StakeholderResourceAssembler {
         return new ChildResource(child.getId().toString(), child.getName(), child.getGrade(),
                 Ids.asText(child.getParentId()), child.isActive(), child.getBoardingStatus().name(),
                 child.isHasPhoto(), Ids.asText(child.getOrganizationId()));
+    }
+
+    public static AuthorizedPersonResource toResource(AuthorizedPerson person) {
+        return new AuthorizedPersonResource(person.getId().toString(), person.getChildId().toString(),
+                person.getFullName(), person.getDocumentNumber(), person.getRelationship(), person.getPhone(),
+                Ids.asText(person.getOrganizationId()));
     }
 
     public static ProfileResource toProfile(Driver driver) {

@@ -1,5 +1,6 @@
 package com.stackforge.kidtrack.platform.stakeholder.domain.services;
 
+import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.AuthorizedPerson;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.Child;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.Driver;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.aggregates.Parent;
@@ -9,6 +10,8 @@ import com.stackforge.kidtrack.platform.stakeholder.domain.model.commands.Stakeh
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.commands.StakeholderCommands.DeleteChildCommand;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.commands.StakeholderCommands.DeleteDriverCommand;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.commands.StakeholderCommands.DeleteParentCommand;
+import com.stackforge.kidtrack.platform.stakeholder.domain.model.commands.StakeholderCommands.RegisterAuthorizedPersonCommand;
+import com.stackforge.kidtrack.platform.stakeholder.domain.model.commands.StakeholderCommands.RemoveAuthorizedPersonCommand;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.commands.StakeholderCommands.UpdateChildCommand;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.commands.StakeholderCommands.UpdateDriverCommand;
 import com.stackforge.kidtrack.platform.stakeholder.domain.model.commands.StakeholderCommands.UpdateParentCommand;
@@ -33,4 +36,8 @@ public interface StakeholderCommandService {
     Driver handle(UpdateDriverCommand command);
 
     void handle(DeleteDriverCommand command);
+
+    AuthorizedPerson handle(RegisterAuthorizedPersonCommand command);
+
+    void handle(RemoveAuthorizedPersonCommand command);
 }
