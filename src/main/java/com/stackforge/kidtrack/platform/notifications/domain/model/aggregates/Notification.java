@@ -10,6 +10,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /** A notice sent to the parents of a trip: a student boarded, the bus is close, a delay... */
 @Entity
@@ -25,6 +27,7 @@ public class Notification extends AuditableEntity {
     private UUID organizationId;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(nullable = false, length = 20)
     private NotificationType type;
 
